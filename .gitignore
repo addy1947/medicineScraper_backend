@@ -1,0 +1,74 @@
+############################
+# Node / Package Artifacts #
+############################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+# keep yarn.lock if you switch to yarn (uncomment next line)
+# yarn.lock
+
+############################
+# Environment Variables     #
+############################
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by testing tools
+coverage/
+.nyc_output/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+############################
+# Scraped / Generated Data  #
+############################
+data/
+*.json
+*.html
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+############################
+# Build / Output            #
+############################
+dist/
+build/
+
+############################
+# Debug / TS Incremental    #
+############################
+*.tsbuildinfo
+
+# Optional npm cache
+.npm
+
+# Optional REPL history
+.node_repl_history

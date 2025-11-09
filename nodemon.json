@@ -1,0 +1,14 @@
+{
+  "watch": [
+    "app.js",
+    "tools/apoolo/apooloTool.js"
+  ],
+  "ignore": [
+    "tools/apoolo/*.json",
+    "tools/apoolo/**/*.json",
+    "tools/apoolo/*.html",
+    "tools/apoolo/**/*.html"
+  ],
+  "ext": "js,json",
+  "delay": "200ms"
+}
