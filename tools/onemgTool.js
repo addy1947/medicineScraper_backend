@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
  */
 async function fetchAndSave1mgSearchHTML(keyword = 'paracetamol') {
     const url = `https://www.1mg.com/search/all?name=${encodeURIComponent(keyword)}&filter=true&sort=relevance`;
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
     try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
