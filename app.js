@@ -23,8 +23,8 @@ function withTimeout(promise, ms, label = 'task') {
 }
 
 const app = express();
-const PORT = process.env.PORT || 3001;
-const FRONTEND_URL = process.env.FRONTEND_URL || '';
+const PORT = process.env.PORT;
+const FRONTEND_URL = process.env.FRONTEND_URL ;
 
 // Increase JSON body size limit for base64 images
 app.use(bodyParser.json({ limit: '12mb' }));
