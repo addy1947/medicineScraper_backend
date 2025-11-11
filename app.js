@@ -87,10 +87,10 @@ app.post('/api/apollo-search', async (req, res) => {
     try {
         // Build tasks conditionally
         const entries = [];
-        if (enabled.apollo) entries.push(['apollo', withTimeout(launchApolloSearch(keyword), 20000, 'apollo')]);
-        if (enabled.pharmeasy) entries.push(['pharmeasy', withTimeout(capturePharmEasyTypeaheadFromPage(keyword), 20000, 'pharmeasy')]);
-        if (enabled.netmeds) entries.push(['netmeds', withTimeout(captureNetmedsProducts(keyword), 55000, 'netmeds')]);
-        if (enabled.onemg) entries.push(['onemg', withTimeout(fetchAndSave1mgSearchHTML(keyword), 20000, '1mg')]);
+        if (enabled.apollo) entries.push(['apollo', withTimeout(launchApolloSearch(keyword), 30000, 'apollo')]);
+        if (enabled.pharmeasy) entries.push(['pharmeasy', withTimeout(capturePharmEasyTypeaheadFromPage(keyword), 30000, 'pharmeasy')]);
+        if (enabled.netmeds) entries.push(['netmeds', withTimeout(captureNetmedsProducts(keyword), 60000, 'netmeds')]);
+        if (enabled.onemg) entries.push(['onemg', withTimeout(fetchAndSave1mgSearchHTML(keyword), 30000, '1mg')]);
         if (enabled.truemeds) entries.push(['truemeds', withTimeout(captureTruemedsProducts(keyword), 50000, 'truemeds')]);
 
         const settled = await Promise.allSettled(entries.map((e) => e[1]));
@@ -104,23 +104,41 @@ app.post('/api/apollo-search', async (req, res) => {
             const apolloRes = map.apollo;
             payload.data = apolloRes?.status === 'fulfilled' ? apolloRes.value : null;
             payload.apolloError = apolloRes?.status === 'rejected' ? apolloRes.reason?.message : null;
+            if (apolloRes?.status === 'fulfilled') {
+                const productCount = apolloRes.value?.products?.length || 0;
+                console.log(`Apollo: Success - ${productCount} products`);
+            } else {
+                console.log(`Apollo: Failed - ${payload.apolloError}`);
+            }
         }
 
         if (enabled.pharmeasy) {
             const r = map.pharmeasy;
             payload.pharmeasy = r?.status === 'fulfilled' ? r.value : { ok: false, error: r?.reason?.message };
+            if (payload.pharmeasy?.ok) {
+                console.log(`PharmEasy: Success - ${payload.pharmeasy.products?.length || 0} products`);
+            } else {
+                console.log(`PharmEasy: Failed - ${payload.pharmeasy.error}`);
+            }
         }
 
         if (enabled.netmeds) {
             const r = map.netmeds;
             payload.netmeds = r?.status === 'fulfilled' ? r.value : { ok: false, error: r?.reason?.message };
+            if (payload.netmeds?.ok) {
+                console.log(`Netmeds: Success - ${payload.netmeds.productsCount} products`);
+            } else {
+                console.log(`Netmeds: Failed - ${payload.netmeds.error}`);
+            }
         }
 
         if (enabled.onemg) {
             const r = map.onemg;
             payload.onemg = r?.status === 'fulfilled' ? r.value : { ok: false, error: r?.reason?.message };
             if (payload.onemg?.ok) {
-                console.log(`1mg: Returned ${payload.onemg.productsCount} products (top 3)`);
+                console.log(`1mg: Success - ${payload.onemg.productsCount} products`);
+            } else {
+                console.log(`1mg: Failed - ${payload.onemg.error}`);
             }
         }
 
@@ -128,10 +146,9 @@ app.post('/api/apollo-search', async (req, res) => {
             const r = map.truemeds;
             payload.truemeds = r?.status === 'fulfilled' ? r.value : { ok: false, error: r?.reason?.message };
             if (payload.truemeds?.ok) {
-                console.log(`Truemeds: ${payload.truemeds.message} - ${payload.truemeds.filePath}`);
-                console.log(`Truemeds: Sending ${payload.truemeds.productsCount} products to frontend`);
-            } else if (payload.truemeds?.error) {
-                console.log(`Truemeds error: ${payload.truemeds.error}`);
+                console.log(`Truemeds: Success - ${payload.truemeds.productsCount} products`);
+            } else {
+                console.log(`Truemeds: Failed - ${payload.truemeds.error}`);
             }
         }
 

@@ -111,12 +111,7 @@ async function captureNetmedsProducts(keyword) {
     const searchUrl = `https://www.netmeds.com/products?q=${encodeURIComponent(keyword)}&sort_on=relevance`;
 
     const launchArgs = { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] };
-    let browser;
-    try {
-        browser = await chromium.launch({ ...launchArgs, channel: 'chrome' });
-    } catch (e) {
-        browser = await chromium.launch(launchArgs);
-    }
+    const browser = await chromium.launch(launchArgs);
     
     const page = await browser.newPage();
     let htmlContent = null;

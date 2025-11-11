@@ -12,14 +12,8 @@ async function capturePharmEasyTypeaheadFromPage(keyword) {
 
     const searchUrl = `https://pharmeasy.in/search/all?name=${encodeURIComponent(keyword)}`;
 
-    // Try to use system Chrome if available to avoid large downloads; fallback to bundled browser
     const launchArgs = { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] };
-    let browser;
-    try {
-        browser = await chromium.launch({ ...launchArgs, channel: 'chrome' });
-    } catch (e) {
-        browser = await chromium.launch(launchArgs);
-    }
+    const browser = await chromium.launch(launchArgs);
     const page = await browser.newPage();
     try {
         await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
