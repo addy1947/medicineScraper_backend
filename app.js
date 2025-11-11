@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const axios = require('axios');
 const { launchApolloSearch, capturePharmEasyTypeaheadFromPage, captureNetmedsProducts, fetchAndSave1mgSearchHTML, captureTruemedsProducts } = require('./tools');
+const { execSync } = require('child_process');
 
 // Utility: wrap a promise with a timeout so the API doesn't hang forever
 function withTimeout(promise, ms, label = 'task') {
@@ -49,6 +50,25 @@ app.use(cors({
 // Health check
 app.get('/api/health', (req, res) => {
     res.status(200).json({ ok: true, env: process.env.NODE_ENV || 'development' });
+});
+
+// Browser availability quick check (Playwright) - optional diagnostic endpoint
+app.get('/api/diagnostics/playwright', async (req, res) => {
+    try {
+        const browsersJSON = process.env.PLAYWRIGHT_BROWSERS_PATH || 'N/A';
+        // Attempt to require playwright and list browsers installed
+        const pw = require('playwright');
+        // Playwright does not expose direct list; we just test chromium.launch in headless dry-run
+        try {
+            const browser = await pw.chromium.launch({ headless: true });
+            await browser.close();
+            return res.json({ ok: true, message: 'Chromium launch succeeded', pathVar: browsersJSON });
+        } catch (e) {
+            return res.status(500).json({ ok: false, error: 'Chromium launch failed', details: e.message, pathVar: browsersJSON });
+        }
+    } catch (err) {
+        return res.status(500).json({ ok: false, error: 'Playwright not available', details: err.message });
+    }
 });
 
 app.post('/api/apollo-search', async (req, res) => {

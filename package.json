@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon --config nodemon.json app.js"
+    "dev": "nodemon --config nodemon.json app.js",
+    "playwright:install": "npx playwright install --with-deps"
   },
   "engines": {
     "node": ">=18.0.0"
