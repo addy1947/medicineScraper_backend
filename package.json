@@ -3,9 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon --config nodemon.json app.js",
-    "postinstall": "npx playwright install chromium"
+    "start": "npx playwright install chromium && node app.js",
+    "dev": "nodemon --config nodemon.json app.js"
   },
   "engines": {
     "node": ">=18.0.0"

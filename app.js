@@ -49,7 +49,7 @@ app.use(cors({
 
 // Health check
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ ok: true, env: process.env.NODE_ENV || 'development' });
+    res.status(200).json({ ok: true, env: process.env.NODE_ENV || 'development',time: new Date().toISOString() });
 });
 
 // Browser availability quick check (Playwright) - optional diagnostic endpoint
