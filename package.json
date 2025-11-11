@@ -5,8 +5,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon --config nodemon.json app.js",
-    "playwright:install": "npx playwright install chromium",
-    "postinstall": "npx playwright install chromium"
+    "build": "npx playwright install chromium"
   },
   "engines": {
     "node": ">=18.0.0"
