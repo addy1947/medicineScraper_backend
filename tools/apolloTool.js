@@ -2,6 +2,7 @@ const { chromium } = require('playwright');
 
 /**
  * Launch Apollo Pharmacy search and capture product data
+ * Updated to extract from DOM since API interception is not working
  */
 async function launchApolloSearch(keyword) {
     if (!keyword || typeof keyword !== 'string') {
@@ -13,81 +14,67 @@ async function launchApolloSearch(keyword) {
     const browser = await chromium.launch(launchArgs);
     const page = await browser.newPage();
 
-    let matchedRequest = false;
-    let productData = null;
-    let foundSearchRequest = false;
-    
-    page.on('request', request => {
-        const reqUrl = request.url();
-        // Log all search-related requests to debug
-        if (reqUrl.includes('apollo247.com') || reqUrl.includes('apollopharmacy.in')) {
-            if (reqUrl.includes('search') || reqUrl.includes('Search')) {
-                console.log(`Apollo: Found search request: ${reqUrl}`);
-                foundSearchRequest = true;
-            }
+    try {
+        await page.goto(url, { waitUntil: 'networkidle', timeout: 45000 });
+        
+        // Wait for products to load
+        await page.waitForTimeout(5000);
+        
+        // Try to extract products from the page DOM
+        console.log('Apollo: Extracting products from DOM...');
+        
+        const products = await page.evaluate(() => {
+            const productElements = document.querySelectorAll('[data-qa="product-card"], .ProductCard_productCard, [class*="ProductCard"], [class*="product-card"]');
+            console.log(`Found ${productElements.length} product elements`);
+            
+            const extractedProducts = [];
+            
+            productElements.forEach((element, index) => {
+                if (index >= 3) return; // Only take first 3
+                
+                try {
+                    // Try to extract product information
+                    const nameElement = element.querySelector('[data-qa="medicine_name"], [class*="medicineName"], [class*="product-name"], h2, .name');
+                    const priceElement = element.querySelector('[data-qa="price"], [class*="price"], .price');
+                    const imageElement = element.querySelector('img');
+                    const linkElement = element.querySelector('a');
+                    
+                    const product = {
+                        name: nameElement ? nameElement.textContent.trim() : null,
+                        price: priceElement ? priceElement.textContent.trim() : null,
+                        image: imageElement ? imageElement.src : null,
+                        url: linkElement ? linkElement.href : null
+                    };
+                    
+                    if (product.name) {
+                        extractedProducts.push(product);
+                    }
+                } catch (err) {
+                    console.error('Error extracting product:', err);
+                }
+            });
+            
+            return extractedProducts;
+        });
+        
+        console.log(`Apollo: Extracted ${products.length} products from DOM`);
+        
+        await browser.close();
+        
+        if (products.length > 0) {
+            return {
+                products: products,
+                totalProductsCount: products.length
+            };
         }
         
-        if (reqUrl.includes('https://search.apollo247.com/v4/fullSearch')) {
-            const postData = request.postData();
-            let payload = null;
-            
-            if (postData) {
-                try {
-                    payload = JSON.parse(postData);
-                    console.log('Apollo: Matched fullSearch request with payload');
-                } catch (err) {
-                    console.error('Apollo: Error parsing request payload', err.message);
-                }
-            }
-            
-            if (payload && 
-                'filters' in payload && 
-                payload.page === 1 && 
-                'pincode' in payload && 
-                'productsPerPage' in payload && 
-                'query' in payload && 
-                'selSortBy' in payload) {
-                matchedRequest = true;
-            }
-        }
-    });
-
-    page.on('response', async response => {
-        const reqUrl = response.url();
-        if (reqUrl.includes('https://search.apollo247.com/v4/fullSearch') && matchedRequest) {
-            try {
-                const responseBody = await response.json();
-                console.log('Apollo: Received fullSearch response');
-                
-                if (responseBody && responseBody.data && responseBody.data.productDetails) {
-                    const productDetails = responseBody.data.productDetails;
-                    productData = {
-                        ...productDetails,
-                        products: productDetails.products ? productDetails.products.slice(0, 3) : []
-                    };
-                    console.log(`Apollo: Extracted ${productData.products.length} products`);
-                } else {
-                    console.log('Apollo: Response structure unexpected', JSON.stringify(responseBody).substring(0, 200));
-                }
-            } catch (err) {
-                console.error('Apollo: Error parsing response', err.message);
-            }
-            
-            matchedRequest = false;
-        }
-    });
-
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 45000 });
-    // Give some time for the network request of interest to fire
-    await page.waitForTimeout(3000);
-    
-    if (!foundSearchRequest) {
-        console.log('Apollo: No search requests detected - API might have changed');
+        return null;
+        
+    } catch (err) {
+        console.error('Apollo: Error during scraping:', err.message);
+        await browser.close();
+        return null;
     }
-    
-    await browser.close();
-    
-    return productData;
 }
 
 module.exports = { launchApolloSearch };
