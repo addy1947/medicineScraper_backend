@@ -15,17 +15,28 @@ async function launchApolloSearch(keyword) {
 
     let matchedRequest = false;
     let productData = null;
+    let foundSearchRequest = false;
     
     page.on('request', request => {
-        if (request.url().includes('https://search.apollo247.com/v4/fullSearch')) {
+        const reqUrl = request.url();
+        // Log all search-related requests to debug
+        if (reqUrl.includes('apollo247.com') || reqUrl.includes('apollopharmacy.in')) {
+            if (reqUrl.includes('search') || reqUrl.includes('Search')) {
+                console.log(`Apollo: Found search request: ${reqUrl}`);
+                foundSearchRequest = true;
+            }
+        }
+        
+        if (reqUrl.includes('https://search.apollo247.com/v4/fullSearch')) {
             const postData = request.postData();
             let payload = null;
             
             if (postData) {
                 try {
                     payload = JSON.parse(postData);
+                    console.log('Apollo: Matched fullSearch request with payload');
                 } catch (err) {
-                    // Silent error handling
+                    console.error('Apollo: Error parsing request payload', err.message);
                 }
             }
             
@@ -46,6 +57,7 @@ async function launchApolloSearch(keyword) {
         if (reqUrl.includes('https://search.apollo247.com/v4/fullSearch') && matchedRequest) {
             try {
                 const responseBody = await response.json();
+                console.log('Apollo: Received fullSearch response');
                 
                 if (responseBody && responseBody.data && responseBody.data.productDetails) {
                     const productDetails = responseBody.data.productDetails;
@@ -53,18 +65,26 @@ async function launchApolloSearch(keyword) {
                         ...productDetails,
                         products: productDetails.products ? productDetails.products.slice(0, 3) : []
                     };
+                    console.log(`Apollo: Extracted ${productData.products.length} products`);
+                } else {
+                    console.log('Apollo: Response structure unexpected', JSON.stringify(responseBody).substring(0, 200));
                 }
             } catch (err) {
-                // Silent error handling
+                console.error('Apollo: Error parsing response', err.message);
             }
             
             matchedRequest = false;
         }
     });
 
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.goto(url, { waitUntil: 'networkidle', timeout: 45000 });
     // Give some time for the network request of interest to fire
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(3000);
+    
+    if (!foundSearchRequest) {
+        console.log('Apollo: No search requests detected - API might have changed');
+    }
+    
     await browser.close();
     
     return productData;
