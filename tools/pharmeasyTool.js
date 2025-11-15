@@ -1,5 +1,5 @@
-const { chromium } = require('playwright');
 const cheerio = require('cheerio');
+const { getBrowser } = require('./browserProvider');
 
 /**
  * Capture the PharmEasy search page HTML response.
@@ -12,14 +12,13 @@ async function capturePharmEasyTypeaheadFromPage(keyword) {
 
     const searchUrl = `https://pharmeasy.in/search/all?name=${encodeURIComponent(keyword)}`;
 
-    const launchArgs = { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] };
-    const browser = await chromium.launch(launchArgs);
+    const browser = await getBrowser();
     const page = await browser.newPage();
     try {
-        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
+        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
 
-        // Wait a bit for content to load
-        await page.waitForTimeout(2000);
+        // Wait for menu items to appear
+        await page.waitForSelector('[role="menuitem"]', { timeout: 5000 }).catch(() => {});
 
         // Extract only menuitem elements
         const menuItems = await page.evaluate(() => {
@@ -97,7 +96,6 @@ async function capturePharmEasyTypeaheadFromPage(keyword) {
         };
     } finally {
         await page.close().catch(() => {});
-        await browser.close().catch(() => {});
     }
 }
 

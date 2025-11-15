@@ -1,17 +1,17 @@
-const { chromium } = require('playwright');
+const { getBrowser } = require('./browserProvider');
 
 /**
  * Fetch 1mg search results (no file saving)
  */
 async function fetchAndSave1mgSearchHTML(keyword = 'paracetamol') {
     const url = `https://www.1mg.com/search/all?name=${encodeURIComponent(keyword)}&filter=true&sort=relevance`;
-    const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const browser = await getBrowser();
     const page = await browser.newPage();
     try {
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
         
         // Wait for the product grid to load
-        await page.waitForSelector('.style__grid-container___3OfcL', { timeout: 10000 });
+        await page.waitForSelector('.style__grid-container___3OfcL', { timeout: 3000 });
         
         // Extract all product data from the page
         const productsData = await page.evaluate(() => {
@@ -126,7 +126,6 @@ async function fetchAndSave1mgSearchHTML(keyword = 'paracetamol') {
         return { ok: false, error: err.message };
     } finally {
         await page.close().catch(() => {});
-        await browser.close().catch(() => {});
     }
 }
 

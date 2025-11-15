@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { getBrowser } = require('./browserProvider');
 
 /**
  * Function to clean medicine data - keep only important fields
@@ -110,9 +110,7 @@ async function captureNetmedsProducts(keyword) {
 
     const searchUrl = `https://www.netmeds.com/products?q=${encodeURIComponent(keyword)}&sort_on=relevance`;
 
-    const launchArgs = { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] };
-    const browser = await chromium.launch(launchArgs);
-    
+    const browser = await getBrowser();
     const page = await browser.newPage();
     let htmlContent = null;
 
@@ -130,8 +128,7 @@ async function captureNetmedsProducts(keyword) {
             }
         });
 
-        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
-        await page.waitForTimeout(3000);
+        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
 
         // If network capture failed for any reason, fallback to the current page HTML
         if (!htmlContent) {
@@ -234,7 +231,6 @@ async function captureNetmedsProducts(keyword) {
         }
     } finally {
         await page.close().catch(() => {});
-        await browser.close().catch(() => {});
     }
 }
 

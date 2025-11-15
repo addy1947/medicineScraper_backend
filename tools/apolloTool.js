@@ -1,6 +1,4 @@
-const { chromium } = require('playwright');
-const fs = require('fs');
-const path = require('path');
+const { getBrowser } = require('./browserProvider');
 
 /**
  * Capture Apollo search page network traffic, intercept fullSearch response,
@@ -14,7 +12,7 @@ async function launchApolloSearch(keyword) {
     const clean = keyword.trim();
     const searchUrl = `https://www.apollopharmacy.in/search-medicines/${encodeURIComponent(clean)}`;
     const targetApi = 'https://search.apollo247.com/v4/fullSearch';
-    const browser = await chromium.launch({ headless: true });
+    const browser = await getBrowser();
     const page = await browser.newPage();
 
     let fullSearchJson = null;
@@ -34,17 +32,20 @@ async function launchApolloSearch(keyword) {
     });
 
     try {
-        await page.goto(searchUrl, { waitUntil: 'networkidle', timeout: 60000 });
-        await page.waitForTimeout(4000);
+        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        // Wait for the API response to be captured
+        await page.waitForResponse(resp => resp.url().startsWith(targetApi), { timeout: 10000 });
+        // Small buffer to ensure response is fully processed
+        await page.waitForTimeout(500);
     } catch (e) {
         console.error('Apollo navigation error:', e.message);
     }
 
-    await browser.close();
+    await page.close().catch(()=>{});
 
     if (!fullSearchJson) {
         console.warn('Apollo: fullSearch response not captured.');
-        return [];
+        return { products: [], productsCount: 0, query: clean };
     }
 
     const products = Array.isArray(fullSearchJson?.data?.productDetails?.products)
@@ -66,14 +67,6 @@ async function launchApolloSearch(keyword) {
         additionalInfo: p.additionalInfo || {},
         tags: p.tags || null,
     }));
-
-    const outFile = path.join(__dirname, `apollo_top3_${clean.toLowerCase().replace(/[^a-z0-9]+/g, '_')}.json`);
-    try {
-        fs.writeFileSync(outFile, JSON.stringify({ products: normalizedTop3, productsCount: normalizedTop3.length, query: clean }, null, 2), 'utf-8');
-        console.log(`Apollo: saved normalized top 3 products to ${outFile}`);
-    } catch (e) {
-        console.error('Apollo: failed to save top3 file:', e.message);
-    }
 
     return { products: normalizedTop3, productsCount: normalizedTop3.length, query: clean };
 }

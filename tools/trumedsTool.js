@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { getBrowser } = require('./browserProvider');
 
 /**
  * Fetch Truemeds search results (no file saving)
@@ -38,12 +38,12 @@ async function captureTruemedsProducts(keyword) {
     
     const url = `${baseUrl}?${params.toString()}`;
     
-    const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const browser = await getBrowser();
     const page = await browser.newPage();
     
     try {
         // Navigate to the API endpoint
-        const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+        const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
         
         if (!response || !response.ok()) {
             return { 
@@ -107,7 +107,6 @@ async function captureTruemedsProducts(keyword) {
         return { ok: false, error: err.message };
     } finally {
         await page.close().catch(() => {});
-        await browser.close().catch(() => {});
     }
 }
 
