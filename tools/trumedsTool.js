@@ -39,10 +39,11 @@ async function captureTruemedsProducts(keyword) {
     const url = `${baseUrl}?${params.toString()}`;
     
     const browser = await getBrowser();
+    const startTime = Date.now();
+    console.log(`[Truemeds] Opening page...`);
     const page = await browser.newPage();
     
     try {
-        // Navigate to the API endpoint
         const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
         
         if (!response || !response.ok()) {
@@ -92,9 +93,9 @@ async function captureTruemedsProducts(keyword) {
                 };
             });
         
-        console.log(`Truemeds: Extracted ${products.length} products, returning to frontend`);
+        const requestTime = Date.now() - startTime;
+        console.log(`[Truemeds] Request completed in ${requestTime}ms`);
         
-        // Return products data to frontend (no file saving)
         return { 
             ok: true,
             products: products,
@@ -103,10 +104,10 @@ async function captureTruemedsProducts(keyword) {
         };
         
     } catch (err) {
-        console.error('Truemeds error:', err.message);
         return { ok: false, error: err.message };
     } finally {
         await page.close().catch(() => {});
+        console.log(`[Truemeds] Page closed`);
     }
 }
 

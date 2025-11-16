@@ -13,11 +13,11 @@ async function capturePharmEasyTypeaheadFromPage(keyword) {
     const searchUrl = `https://pharmeasy.in/search/all?name=${encodeURIComponent(keyword)}`;
 
     const browser = await getBrowser();
+    const startTime = Date.now();
+    console.log(`[PharmEasy] Opening page...`);
     const page = await browser.newPage();
     try {
         await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
-
-        // Wait for menu items to appear
         await page.waitForSelector('[role="menuitem"]', { timeout: 5000 }).catch(() => {});
 
         // Extract only menuitem elements
@@ -89,6 +89,8 @@ async function capturePharmEasyTypeaheadFromPage(keyword) {
         // Keep only top 3 products
         const top3Products = products.slice(0, 3);
 
+        const requestTime = Date.now() - startTime;
+        console.log(`[PharmEasy] Request completed in ${requestTime}ms`);
         // Return products to caller without saving to disk
         return {
             ok: true,
@@ -96,6 +98,7 @@ async function capturePharmEasyTypeaheadFromPage(keyword) {
         };
     } finally {
         await page.close().catch(() => {});
+        console.log(`[PharmEasy] Page closed`);
     }
 }
 

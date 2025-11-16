@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const axios = require('axios');
 const { launchApolloSearch, capturePharmEasyTypeaheadFromPage, captureNetmedsProducts, fetchAndSave1mgSearchHTML, captureTruemedsProducts } = require('./tools');
+const { preLaunchBrowser } = require('./tools/browserProvider');
 const { execSync } = require('child_process');
 
 // Utility: wrap a promise with a timeout so the API doesn't hang forever
@@ -104,52 +105,26 @@ app.post('/api/apollo-search', async (req, res) => {
             const apolloRes = map.apollo;
             payload.data = apolloRes?.status === 'fulfilled' ? apolloRes.value : null;
             payload.apolloError = apolloRes?.status === 'rejected' ? apolloRes.reason?.message : null;
-            if (apolloRes?.status === 'fulfilled') {
-                const productCount = apolloRes.value?.products?.length || 0;
-                console.log(`Apollo: Success - ${productCount} products`);
-            } else {
-                console.log(`Apollo: Failed - ${payload.apolloError}`);
-            }
         }
 
         if (enabled.pharmeasy) {
             const r = map.pharmeasy;
             payload.pharmeasy = r?.status === 'fulfilled' ? r.value : { ok: false, error: r?.reason?.message };
-            if (payload.pharmeasy?.ok) {
-                console.log(`PharmEasy: Success - ${payload.pharmeasy.products?.length || 0} products`);
-            } else {
-                console.log(`PharmEasy: Failed - ${payload.pharmeasy.error}`);
-            }
         }
 
         if (enabled.netmeds) {
             const r = map.netmeds;
             payload.netmeds = r?.status === 'fulfilled' ? r.value : { ok: false, error: r?.reason?.message };
-            if (payload.netmeds?.ok) {
-                console.log(`Netmeds: Success - ${payload.netmeds.productsCount} products`);
-            } else {
-                console.log(`Netmeds: Failed - ${payload.netmeds.error}`);
-            }
         }
 
         if (enabled.onemg) {
             const r = map.onemg;
             payload.onemg = r?.status === 'fulfilled' ? r.value : { ok: false, error: r?.reason?.message };
-            if (payload.onemg?.ok) {
-                console.log(`1mg: Success - ${payload.onemg.productsCount} products`);
-            } else {
-                console.log(`1mg: Failed - ${payload.onemg.error}`);
-            }
         }
 
         if (enabled.truemeds) {
             const r = map.truemeds;
             payload.truemeds = r?.status === 'fulfilled' ? r.value : { ok: false, error: r?.reason?.message };
-            if (payload.truemeds?.ok) {
-                console.log(`Truemeds: Success - ${payload.truemeds.productsCount} products`);
-            } else {
-                console.log(`Truemeds: Failed - ${payload.truemeds.error}`);
-            }
         }
 
         res.status(200).json(payload);
@@ -261,4 +236,6 @@ app.post('/api/ocr-prescription', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Backend server running on port ${PORT}`);
+    // Pre-launch browser for faster first request
+    preLaunchBrowser();
 });

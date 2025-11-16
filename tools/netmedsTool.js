@@ -111,20 +111,18 @@ async function captureNetmedsProducts(keyword) {
     const searchUrl = `https://www.netmeds.com/products?q=${encodeURIComponent(keyword)}&sort_on=relevance`;
 
     const browser = await getBrowser();
+    const startTime = Date.now();
+    console.log(`[Netmeds] Opening page...`);
     const page = await browser.newPage();
     let htmlContent = null;
 
     try {
-        // Listen for the main page response
         page.on('response', async (response) => {
             const url = response.url();
-            // Match the exact products URL
             if (url === searchUrl && response.status() === 200) {
                 try {
                     htmlContent = await response.text();
-                } catch (err) {
-                    // Silent error handling
-                }
+                } catch (err) {}
             }
         });
 
@@ -197,19 +195,14 @@ async function captureNetmedsProducts(keyword) {
             
             const itemsArray = htmlContent.substring(startIndex, endIndex);
             
-            // Parse and clean the data (no file saving)
             try {
-                console.log('Netmeds: Cleaning medicine data...');
                 const items = JSON.parse(itemsArray);
                 const cleanedData = cleanMedicineData(items);
-                
-                // Keep only top 3 products
                 const top3Products = cleanedData.slice(0, 3);
                 
-                console.log(`Netmeds: Extracted ${cleanedData.length} products, returning top 3`);
-                top3Products.forEach((p, i) => console.log(`  ${i + 1}. ${p.name}`));
+                const requestTime = Date.now() - startTime;
+                console.log(`[Netmeds] Request completed in ${requestTime}ms`);
                 
-                // Return the cleaned products (no file saving)
                 return {
                     ok: true,
                     products: top3Products,
@@ -217,7 +210,6 @@ async function captureNetmedsProducts(keyword) {
                     message: `Netmeds: Found ${cleanedData.length} products`
                 };
             } catch (err) {
-                console.error('Netmeds: Error cleaning data:', err.message);
                 return {
                     ok: false,
                     error: `Failed to parse products: ${err.message}`
@@ -231,6 +223,7 @@ async function captureNetmedsProducts(keyword) {
         }
     } finally {
         await page.close().catch(() => {});
+        console.log(`[Netmeds] Page closed`);
     }
 }
 

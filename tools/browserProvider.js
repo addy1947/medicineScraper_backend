@@ -6,13 +6,25 @@ let launchingPromise = null;
 async function getBrowser() {
   if (browserInstance) return browserInstance;
   if (launchingPromise) return launchingPromise;
+
+  console.log('Launching browser...');
   launchingPromise = chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] })
     .then(b => {
       browserInstance = b;
+      console.log('Browser launched successfully');
       return b;
     })
     .finally(() => { launchingPromise = null; });
+
   return launchingPromise;
+}
+
+async function preLaunchBrowser() {
+  try {
+    await getBrowser();
+  } catch (e) {
+    console.error('Failed to pre-launch browser:', e.message);
+  }
 }
 
 async function closeBrowser() {
@@ -26,4 +38,4 @@ process.on('exit', () => { closeBrowser(); });
 process.on('SIGINT', () => { closeBrowser().then(() => process.exit(0)); });
 process.on('SIGTERM', () => { closeBrowser().then(() => process.exit(0)); });
 
-module.exports = { getBrowser, closeBrowser };
+module.exports = { getBrowser, preLaunchBrowser, closeBrowser };

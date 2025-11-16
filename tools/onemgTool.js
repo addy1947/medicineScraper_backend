@@ -6,11 +6,11 @@ const { getBrowser } = require('./browserProvider');
 async function fetchAndSave1mgSearchHTML(keyword = 'paracetamol') {
     const url = `https://www.1mg.com/search/all?name=${encodeURIComponent(keyword)}&filter=true&sort=relevance`;
     const browser = await getBrowser();
+    const startTime = Date.now();
+    console.log(`[1mg] Opening page...`);
     const page = await browser.newPage();
     try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
-        
-        // Wait for the product grid to load
         await page.waitForSelector('.style__grid-container___3OfcL', { timeout: 3000 });
         
         // Extract all product data from the page
@@ -110,11 +110,11 @@ async function fetchAndSave1mgSearchHTML(keyword = 'paracetamol') {
             return products;
         });
         
-        // Filter out ads and return only top 3 non-ad products
         const nonAdProducts = productsData.filter(product => !product.is_ad);
         const top3Products = nonAdProducts.slice(0, 3);
         
-        console.log(`1mg: Extracted ${productsData.length} products (${nonAdProducts.length} non-ads), returning top 3 non-ad products`);
+        const requestTime = Date.now() - startTime;
+        console.log(`[1mg] Request completed in ${requestTime}ms`);
         
         return { 
             ok: true,
@@ -126,6 +126,7 @@ async function fetchAndSave1mgSearchHTML(keyword = 'paracetamol') {
         return { ok: false, error: err.message };
     } finally {
         await page.close().catch(() => {});
+        console.log(`[1mg] Page closed`);
     }
 }
 

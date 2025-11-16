@@ -13,6 +13,8 @@ async function launchApolloSearch(keyword) {
     const searchUrl = `https://www.apollopharmacy.in/search-medicines/${encodeURIComponent(clean)}`;
     const targetApi = 'https://search.apollo247.com/v4/fullSearch';
     const browser = await getBrowser();
+    const startTime = Date.now();
+    console.log(`[Apollo] Opening page...`);
     const page = await browser.newPage();
 
     let fullSearchJson = null;
@@ -26,25 +28,21 @@ async function launchApolloSearch(keyword) {
             const ct = resp.headers()['content-type'] || '';
             if (!ct.includes('application/json')) return;
             fullSearchJson = await resp.json();
-        } catch (e) {
-            console.error('Apollo interception error:', e.message);
-        }
+        } catch (e) {}
     });
 
     try {
         await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
-        // Wait for the API response to be captured
         await page.waitForResponse(resp => resp.url().startsWith(targetApi), { timeout: 10000 });
-        // Small buffer to ensure response is fully processed
         await page.waitForTimeout(500);
-    } catch (e) {
-        console.error('Apollo navigation error:', e.message);
-    }
+    } catch (e) {}
 
+    const requestTime = Date.now() - startTime;
+    console.log(`[Apollo] Request completed in ${requestTime}ms`);
     await page.close().catch(()=>{});
+    console.log(`[Apollo] Page closed`);
 
     if (!fullSearchJson) {
-        console.warn('Apollo: fullSearch response not captured.');
         return { products: [], productsCount: 0, query: clean };
     }
 
