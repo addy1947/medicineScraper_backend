@@ -10,12 +10,12 @@ async function fetchAndSave1mgSearchHTML(keyword = 'paracetamol') {
     console.log(`[1mg] Opening page...`);
     const page = await browser.newPage();
     try {
-        const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-        // Use a realistic user agent and increase navigation timeout
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-        page.setDefaultNavigationTimeout(120000);
-
-        // Retry navigation a couple of times before giving up
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    // Use a realistic user agent and increase navigation timeout
+    await page.setExtraHTTPHeaders({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    });
+    page.setDefaultNavigationTimeout(120000);        // Retry navigation a couple of times before giving up
         let attempts = 0;
         const maxAttempts = 3;
         while (attempts < maxAttempts) {
