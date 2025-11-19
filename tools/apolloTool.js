@@ -32,8 +32,8 @@ async function launchApolloSearch(keyword) {
     });
 
     try {
-        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
-        await page.waitForResponse(resp => resp.url().startsWith(targetApi), { timeout: 10000 });
+        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 40000 });
+        await page.waitForResponse(resp => resp.url().startsWith(targetApi), { timeout: 20000 });
         await page.waitForTimeout(500);
     } catch (e) {}
 

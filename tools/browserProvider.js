@@ -7,8 +7,22 @@ async function getBrowser() {
   if (browserInstance) return browserInstance;
   if (launchingPromise) return launchingPromise;
 
+  const headless = process.env.HEADLESS === 'false' ? false : true; // default headless true unless explicitly set to 'false'
+  const launchArgs = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--disable-background-networking',
+    '--disable-background-timer-throttling',
+    '--disable-renderer-backgrounding',
+    '--disable-infobars',
+    '--disable-extensions',
+    '--no-zygote'
+  ];
+
   console.log('Launching browser...');
-  launchingPromise = chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] })
+  launchingPromise = chromium.launch({ headless, args: launchArgs })
     .then(b => {
       browserInstance = b;
       console.log('Browser launched successfully');

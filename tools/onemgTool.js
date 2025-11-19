@@ -10,7 +10,7 @@ async function fetchAndSave1mgSearchHTML(keyword = 'paracetamol') {
     console.log(`[1mg] Opening page...`);
     const page = await browser.newPage();
     try {
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
         await page.waitForSelector('.style__grid-container___3OfcL', { timeout: 3000 });
         
         // Extract all product data from the page

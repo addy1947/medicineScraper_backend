@@ -88,11 +88,11 @@ app.post('/api/apollo-search', async (req, res) => {
     try {
         // Build tasks conditionally
         const entries = [];
-        if (enabled.apollo) entries.push(['apollo', withTimeout(launchApolloSearch(keyword), 30000, 'apollo')]);
-        if (enabled.pharmeasy) entries.push(['pharmeasy', withTimeout(capturePharmEasyTypeaheadFromPage(keyword), 30000, 'pharmeasy')]);
-        if (enabled.netmeds) entries.push(['netmeds', withTimeout(captureNetmedsProducts(keyword), 60000, 'netmeds')]);
-        if (enabled.onemg) entries.push(['onemg', withTimeout(fetchAndSave1mgSearchHTML(keyword), 30000, '1mg')]);
-        if (enabled.truemeds) entries.push(['truemeds', withTimeout(captureTruemedsProducts(keyword), 50000, 'truemeds')]);
+        if (enabled.apollo) entries.push(['apollo', withTimeout(launchApolloSearch(keyword), 60000, 'apollo')]);
+        if (enabled.pharmeasy) entries.push(['pharmeasy', withTimeout(capturePharmEasyTypeaheadFromPage(keyword), 60000, 'pharmeasy')]);
+        if (enabled.netmeds) entries.push(['netmeds', withTimeout(captureNetmedsProducts(keyword), 90000, 'netmeds')]);
+        if (enabled.onemg) entries.push(['onemg', withTimeout(fetchAndSave1mgSearchHTML(keyword), 60000, '1mg')]);
+        if (enabled.truemeds) entries.push(['truemeds', withTimeout(captureTruemedsProducts(keyword), 75000, 'truemeds')]);
 
         const settled = await Promise.allSettled(entries.map((e) => e[1]));
         const map = {};

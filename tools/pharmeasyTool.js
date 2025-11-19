@@ -17,8 +17,8 @@ async function capturePharmEasyTypeaheadFromPage(keyword) {
     console.log(`[PharmEasy] Opening page...`);
     const page = await browser.newPage();
     try {
-        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
-        await page.waitForSelector('[role="menuitem"]', { timeout: 5000 }).catch(() => {});
+        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 40000 });
+        await page.waitForSelector('[role="menuitem"]', { timeout: 10000 }).catch(() => {});
 
         // Extract only menuitem elements
         const menuItems = await page.evaluate(() => {

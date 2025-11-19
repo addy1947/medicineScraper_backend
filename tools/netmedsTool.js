@@ -126,7 +126,7 @@ async function captureNetmedsProducts(keyword) {
             }
         });
 
-        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 40000 });
 
         // If network capture failed for any reason, fallback to the current page HTML
         if (!htmlContent) {
