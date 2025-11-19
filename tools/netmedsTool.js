@@ -117,6 +117,10 @@ async function captureNetmedsProducts(keyword) {
     let htmlContent = null;
 
     try {
+        const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+        // Use a realistic user agent and increase navigation timeout
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        page.setDefaultNavigationTimeout(120000);
         page.on('response', async (response) => {
             const url = response.url();
             if (url === searchUrl && response.status() === 200) {
@@ -126,7 +130,20 @@ async function captureNetmedsProducts(keyword) {
             }
         });
 
-        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 40000 });
+        // Retry navigation a couple of times before giving up
+        let attempts = 0;
+        const maxAttempts = 3;
+        while (attempts < maxAttempts) {
+            attempts++;
+            try {
+                await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
+                break;
+            } catch (err) {
+                console.warn(`[Netmeds] goto attempt ${attempts} failed: ${err.message}`);
+                if (attempts >= maxAttempts) throw err;
+                await sleep(1500 * attempts);
+            }
+        }
 
         // If network capture failed for any reason, fallback to the current page HTML
         if (!htmlContent) {
